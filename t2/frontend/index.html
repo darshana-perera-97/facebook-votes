@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook Image Downloader</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .result.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .endpoints {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .endpoints h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .endpoint-item {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .endpoint-item strong {
+            color: #667eea;
+        }
+
+        .number-display {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            text-align: center;
+            display: none;
+        }
+
+        .number-display .label {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .number-display .value {
+            color: white;
+            font-size: 48px;
+            font-weight: bold;
+        }
+
+        .status-indicator {
+            margin-bottom: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-indicator.ready {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .status-indicator.not-ready {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+
+        .status-indicator .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-indicator.ready .status-dot {
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.not-ready .status-dot {
+            background: #ffc107;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .image-display {
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .image-display img {
+            max-width: 100%;
+            max-height: 500px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin-bottom: 10px;
+        }
+
+        .image-display .image-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .image-display .image-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📸 Facebook Photo Processor</h1>
+        <p class="subtitle">Extract number and download images from Facebook photo pages</p>
+
+        <div class="status-indicator" id="statusIndicator">
+            <span class="status-dot"></span>
+            <span id="statusText">Checking server status...</span>
+        </div>
+
+        <form id="downloadForm">
+            <div class="form-group">
+                <label for="photoUrl">Facebook Photo URL:</label>
+                <input 
+                    type="text" 
+                    id="photoUrl" 
+                    name="photoUrl" 
+                    placeholder="https://www.facebook.com/photo?fbid=..."
+                    value="https://www.facebook.com/photo?fbid=1504359328357097&set=a.502238108569229"
+                >
+            </div>
+
+            <button type="submit" id="downloadBtn">Process Photo</button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processing your request...</p>
+        </div>
+
+        <div class="number-display" id="numberDisplay">
+            <div class="label">Extracted Number</div>
+            <div class="value" id="numberValue">-</div>
+        </div>
+
+        <div class="image-display" id="imageDisplay">
+            <img id="downloadedImage" src="" alt="Downloaded Image">
+            <div>
+                <a href="#" id="imageLink" class="image-link" target="_blank">View Full Size</a>
+            </div>
+        </div>
+
+        <div class="result" id="result"></div>
+
+        <div class="endpoints">
+            <h3>Available API Endpoints:</h3>
+            <div class="endpoint-item">
+                <strong>GET /</strong> - Health check
+            </div>
+            <div class="endpoint-item">
+                <strong>GET /open-facebook</strong> - Open Facebook.com
+            </div>
+            <div class="endpoint-item">
+                <strong>POST /process-photo</strong> - Process photo (extract number & download image)
+            </div>
+            <div class="endpoint-item">
+                <strong>POST /download</strong> - Download image from URL
+            </div>
+            <div class="endpoint-item">
+                <strong>GET /api</strong> - This frontend page
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Backend API configuration - change this to update all API calls
+        const API_BASE_URL = 'http://69.197.187.24:4561';
+        // const API_BASE_URL = 'http://localhost:4561';
+
+        const form = document.getElementById('downloadForm');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const numberDisplay = document.getElementById('numberDisplay');
+        const numberValue = document.getElementById('numberValue');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+        const imageDisplay = document.getElementById('imageDisplay');
+        const downloadedImage = document.getElementById('downloadedImage');
+        const imageLink = document.getElementById('imageLink');
+
+        // Function to check Facebook login status
+        async function checkFacebookStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/status`);
+                const data = await response.json();
+                
+                if (data.ready) {
+                    statusIndicator.className = 'status-indicator ready';
+                    statusText.textContent = '✅ Facebook login completed. Server is ready to process photos!';
+                    downloadBtn.disabled = false;
+                } else {
+                    statusIndicator.className = 'status-indicator not-ready';
+                    statusText.textContent = '⏳ Waiting for Facebook login to complete...';
+                    downloadBtn.disabled = true;
+                    // Check again after 2 seconds
+                    setTimeout(checkFacebookStatus, 2000);
+                }
+            } catch (error) {
+                statusIndicator.className = 'status-indicator not-ready';
+                statusText.textContent = `⚠️ Cannot connect to server. Make sure the server is running at ${API_BASE_URL}.`;
+                downloadBtn.disabled = true;
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const photoUrl = document.getElementById('photoUrl').value.trim();
+            
+            if (!photoUrl) {
+                showResult('Please enter a Facebook photo URL', 'error');
+                return;
+            }
+
+            // Show loading state
+            loading.style.display = 'block';
+            result.style.display = 'none';
+            numberDisplay.style.display = 'none';
+            imageDisplay.style.display = 'none';
+            downloadBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/process-photo`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: photoUrl })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Display extracted number
+                    if (data.data.number) {
+                        numberValue.textContent = data.data.number;
+                        numberDisplay.style.display = 'block';
+                    }
+                    
+                    // Display downloaded image
+                    if (data.data.viewableImageUrl) {
+                        downloadedImage.src = data.data.viewableImageUrl;
+                        imageLink.href = data.data.viewableImageUrl;
+                        imageDisplay.style.display = 'block';
+                    }
+                    
+                    // Display success message
+                    let message = '✅ Photo processed successfully!\n\n';
+                    if (data.data.number) {
+                        message += `📊 Extracted Number: ${data.data.number}\n\n`;
+                    }
+                    if (data.data.viewableImageUrl) {
+                        message += `📸 Image is displayed below\n`;
+                        message += `🔗 Image URL: ${data.data.viewableImageUrl}`;
+                    } else {
+                        message += `📸 Image saved to: ${data.data.imagePath || 'N/A'}`;
+                    }
+                    
+                    showResult(message, 'success');
+                } else {
+                    showResult(`❌ Error: ${data.error || 'Failed to process photo'}`, 'error');
+                    numberDisplay.style.display = 'none';
+                    imageDisplay.style.display = 'none';
+                }
+            } catch (error) {
+                showResult(`❌ Network Error: ${error.message}`, 'error');
+                numberDisplay.style.display = 'none';
+                imageDisplay.style.display = 'none';
+            } finally {
+                loading.style.display = 'none';
+                downloadBtn.disabled = false;
+            }
+        });
+
+        function showResult(message, type) {
+            result.textContent = message;
+            result.className = `result ${type}`;
+            result.style.display = 'block';
+        }
+
+        // Check Facebook login status on load and periodically
+        window.addEventListener('load', () => {
+            checkFacebookStatus();
+            // Check status every 5 seconds
+            setInterval(checkFacebookStatus, 5000);
+        });
+    </script>
+</body>
+</html>
+

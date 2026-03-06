@@ -25,12 +25,42 @@ cd backend
 npm install
 ```
 
-3. Start the backend server:
+3. **Install Playwright browsers (REQUIRED for Linux servers):**
+```bash
+npx playwright install chromium
+```
+
+4. **For Linux servers, install system dependencies:**
+```bash
+# Ubuntu/Debian
+sudo apt-get update
+sudo apt-get install -y \
+    libnss3 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libdbus-1-3 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
+    libpango-1.0-0 \
+    libcairo2
+
+# Or use Playwright's install script
+npx playwright install-deps chromium
+```
+
+5. Start the backend server:
 ```bash
 npm start
 ```
 
-The backend API will run on `http://localhost:3001`
+The backend API will run on `http://localhost:4041` (or the port specified in PORT env variable)
 
 ### Frontend
 
