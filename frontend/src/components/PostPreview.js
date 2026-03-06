@@ -348,13 +348,19 @@ function PostPreview() {
             {post.imageUrl ? (
               <div className="post-image-container">
                 <img
-                  src={post.imageUrl}
+                  src={`/api/image-proxy?url=${encodeURIComponent(post.imageUrl)}`}
                   alt="Facebook post"
                   className="post-image"
                   onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'flex';
+                    // Try direct URL if proxy fails
+                    if (e.target.src.includes('/api/image-proxy')) {
+                      e.target.src = post.imageUrl;
+                    } else {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }
                   }}
+                  loading="lazy"
                 />
                 <div className="image-placeholder" style={{ display: 'none' }}>
                   <span>Image not available</span>

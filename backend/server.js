@@ -3,6 +3,8 @@ const cors = require('cors');
 const fs = require('fs');
 const fsPromises = require('fs').promises;
 const path = require('path');
+const https = require('https');
+const http = require('http');
 const { chromium } = require('playwright');
 
 const app = express();
@@ -161,17 +163,24 @@ async function extractImageUrl(page) {
     'img[data-imgperflogname]',
     'img[src*="fbcdn"]',
     'img[src*="facebook"]',
+    'img[src*="cdn"]',
   ];
 
+  // Try selectors first
   for (const selector of imageSelectors) {
     try {
-      const img = await page.$(selector);
-      if (img) {
-        imageUrl = await img.getAttribute('src');
-        if (imageUrl && (imageUrl.includes('scontent') || imageUrl.includes('fbcdn') || imageUrl.includes('facebook'))) {
-          break;
+      const images = await page.$$(selector);
+      for (const img of images) {
+        const src = await img.getAttribute('src');
+        if (src && (src.includes('scontent') || src.includes('fbcdn') || src.includes('facebook') || src.includes('cdn'))) {
+          // Check if it's a valid image URL (not a data URI or placeholder)
+          if (!src.startsWith('data:') && !src.includes('placeholder') && src.length > 20) {
+            imageUrl = src;
+            break;
+          }
         }
       }
+      if (imageUrl) break;
     } catch (e) {
       continue;
     }
@@ -187,9 +196,9 @@ async function extractImageUrl(page) {
       for (const img of allImages) {
         try {
           const src = await img.getAttribute('src');
-          if (src && (src.includes('scontent') || src.includes('fbcdn'))) {
-            const naturalWidth = await img.evaluate(el => el.naturalWidth);
-            const naturalHeight = await img.evaluate(el => el.naturalHeight);
+          if (src && (src.includes('scontent') || src.includes('fbcdn') || src.includes('cdn')) && !src.startsWith('data:')) {
+            const naturalWidth = await img.evaluate(el => el.naturalWidth || el.width || 0);
+            const naturalHeight = await img.evaluate(el => el.naturalHeight || el.height || 0);
             const size = naturalWidth * naturalHeight;
             
             if (size > largestSize && size > 10000) { // Only consider images larger than 100x100
@@ -204,6 +213,18 @@ async function extractImageUrl(page) {
       
       if (largestImage) {
         imageUrl = largestImage;
+      }
+    } catch (e) {
+      // Ignore
+    }
+  }
+  
+  // Final fallback: try to get currentSrc (loaded image)
+  if (!imageUrl) {
+    try {
+      const mainImage = await page.$('img[src*="scontent"], img[src*="fbcdn"]');
+      if (mainImage) {
+        imageUrl = await mainImage.evaluate(el => el.currentSrc || el.src);
       }
     } catch (e) {
       // Ignore
@@ -337,8 +358,29 @@ app.post('/api/scrape-post', async (req, res) => {
 
     // Extract data
     console.log(`[${timestamp}] 🔍 Extracting image and likes count...`);
-    const imageUrl = await extractImageUrl(page);
+    
+    // Wait a bit more for images to fully load
+    await page.waitForTimeout(2000);
+    
+    let imageUrl = await extractImageUrl(page);
     const likesCount = await extractLikesCount(page);
+    
+    // If no image found, try finding image in post element
+    if (!imageUrl) {
+      try {
+        console.log(`[${timestamp}] 📸 No image URL found, trying alternative extraction...`);
+        const postElement = await page.$('div[role="article"]') || await page.$('div[data-pagelet]');
+        if (postElement) {
+          const postImage = await postElement.$('img[src*="scontent"], img[src*="fbcdn"]');
+          if (postImage) {
+            imageUrl = await postImage.getAttribute('src');
+            console.log(`[${timestamp}] ✅ Found image in post element`);
+          }
+        }
+      } catch (e) {
+        console.log(`[${timestamp}] ⚠️ Alternative extraction failed: ${e.message}`);
+      }
+    }
 
     await browser.close();
 
@@ -394,6 +436,40 @@ app.post('/api/scrape-post', async (req, res) => {
       success: false,
       error: errorMessage,
     });
+  }
+});
+
+// Image proxy endpoint to handle CORS and expired URLs
+app.get('/api/image-proxy', async (req, res) => {
+  const { url } = req.query;
+  
+  if (!url) {
+    return res.status(400).json({ error: 'Image URL is required' });
+  }
+
+  try {
+    const imageUrl = decodeURIComponent(url);
+    const protocol = imageUrl.startsWith('https') ? https : http;
+    
+    protocol.get(imageUrl, (imageResponse) => {
+      if (imageResponse.statusCode !== 200) {
+        return res.status(404).json({ error: 'Image not found' });
+      }
+
+      // Set appropriate headers
+      res.setHeader('Content-Type', imageResponse.headers['content-type'] || 'image/jpeg');
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+
+      // Pipe the image data to response
+      imageResponse.pipe(res);
+    }).on('error', (error) => {
+      console.error('Error proxying image:', error.message);
+      res.status(500).json({ error: 'Failed to load image' });
+    });
+  } catch (error) {
+    console.error('Error in image proxy:', error);
+    res.status(500).json({ error: 'Failed to proxy image' });
   }
 });
 
