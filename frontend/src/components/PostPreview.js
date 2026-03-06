@@ -23,12 +23,26 @@ function PostPreview() {
     try {
       setLoadingPosts(true);
       setError('');
+      console.log('Loading posts...');
       const response = await getPosts();
-      if (response.success) {
-        setPosts(response.data || []);
+      console.log('Response received:', response);
+      
+      if (response && response.success) {
+        const postsData = response.data || [];
+        console.log('Setting posts:', postsData);
+        setPosts(postsData);
         setLastRefreshTime(new Date());
-      } else {
+      } else if (response && !response.success) {
         setError(response.error || 'Failed to load posts');
+      } else {
+        // Handle case where response might be an array directly
+        if (Array.isArray(response)) {
+          console.log('Response is array, setting directly:', response);
+          setPosts(response);
+          setLastRefreshTime(new Date());
+        } else {
+          setError('Invalid response format from server');
+        }
       }
     } catch (err) {
       console.error('Error loading posts:', err);

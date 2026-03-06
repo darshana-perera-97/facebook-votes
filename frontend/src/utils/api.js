@@ -20,18 +20,29 @@ export const scrapePost = async (postUrl) => {
 
 export const getPosts = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/posts`);
+    const url = `${API_BASE_URL}/api/posts`;
+    console.log('Fetching posts from:', url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
     
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
+      console.error('Failed to fetch posts:', response.status, data);
       throw new Error(data.error || `Failed to fetch posts (${response.status})`);
     }
     
     const data = await response.json();
+    console.log('Posts fetched successfully:', data);
     return data;
   } catch (error) {
-    if (error.message.includes('fetch')) {
-      throw new Error('Cannot connect to server. Make sure the backend is running on http://localhost:3001');
+    console.error('Error in getPosts:', error);
+    if (error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
+      throw new Error(`Cannot connect to server at ${API_BASE_URL || 'backend'}. Make sure the backend is running.`);
     }
     throw error;
   }

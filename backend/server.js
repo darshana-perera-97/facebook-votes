@@ -415,7 +415,15 @@ app.get('/api/posts', async (req, res) => {
       hour12: true
     });
     console.log(`[${timestamp}] 📋 GET /api/posts - Returning ${posts.length} post(s)`);
-    res.json({ success: true, data: posts });
+    
+    // Ensure we always return the correct format
+    if (!Array.isArray(posts)) {
+      console.error(`[${timestamp}] ⚠️ Posts is not an array, converting...`);
+      const fixedPosts = Array.isArray(posts) ? posts : [];
+      res.json({ success: true, data: fixedPosts });
+    } else {
+      res.json({ success: true, data: posts });
+    }
   } catch (error) {
     const errorTime = new Date().toLocaleString('en-US', { 
       year: 'numeric',
@@ -427,7 +435,8 @@ app.get('/api/posts', async (req, res) => {
       hour12: true
     });
     console.error(`[${errorTime}] ❌ Error in GET /api/posts:`, error);
-    res.status(500).json({ success: false, error: error.message });
+    console.error(`[${errorTime}] Error stack:`, error.stack);
+    res.status(500).json({ success: false, error: error.message || 'Failed to load posts' });
   }
 });
 
