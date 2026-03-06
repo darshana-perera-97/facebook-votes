@@ -58,11 +58,36 @@ async function writePosts(posts) {
   }
 }
 
+// Check if Playwright browsers are installed
+async function checkPlaywrightBrowsers() {
+  try {
+    const { chromium } = require('playwright');
+    const browser = await chromium.launch({ headless: true });
+    await browser.close();
+    console.log('✅ Playwright browsers are installed');
+    return true;
+  } catch (error) {
+    if (error.message.includes('Executable doesn\'t exist') || error.message.includes('browserType.launch')) {
+      console.error('❌ Playwright browsers are not installed!');
+      console.error('Please run: npx playwright install chromium');
+      console.error('Or install all browsers: npx playwright install');
+      return false;
+    }
+    throw error;
+  }
+}
+
 // Initialize on startup
 async function initialize() {
   await ensureDataDir();
   await initializePostsFile();
   console.log('Data directory initialized');
+  
+  // Check Playwright browsers
+  const browsersInstalled = await checkPlaywrightBrowsers();
+  if (!browsersInstalled) {
+    console.warn('⚠️  Warning: Playwright browsers not installed. Scraping will fail until browsers are installed.');
+  }
 }
 
 // Helper function to close login popup
@@ -134,6 +159,8 @@ async function extractImageUrl(page) {
     'img[alt*="photo"]',
     'div[role="img"] img',
     'img[data-imgperflogname]',
+    'img[src*="fbcdn"]',
+    'img[src*="facebook"]',
   ];
 
   for (const selector of imageSelectors) {
@@ -141,7 +168,7 @@ async function extractImageUrl(page) {
       const img = await page.$(selector);
       if (img) {
         imageUrl = await img.getAttribute('src');
-        if (imageUrl && imageUrl.includes('scontent')) {
+        if (imageUrl && (imageUrl.includes('scontent') || imageUrl.includes('fbcdn') || imageUrl.includes('facebook'))) {
           break;
         }
       }
@@ -149,6 +176,40 @@ async function extractImageUrl(page) {
       continue;
     }
   }
+  
+  // Try to get all images and find the largest one (likely the main post image)
+  if (!imageUrl) {
+    try {
+      const allImages = await page.$$('img');
+      let largestImage = null;
+      let largestSize = 0;
+      
+      for (const img of allImages) {
+        try {
+          const src = await img.getAttribute('src');
+          if (src && (src.includes('scontent') || src.includes('fbcdn'))) {
+            const naturalWidth = await img.evaluate(el => el.naturalWidth);
+            const naturalHeight = await img.evaluate(el => el.naturalHeight);
+            const size = naturalWidth * naturalHeight;
+            
+            if (size > largestSize && size > 10000) { // Only consider images larger than 100x100
+              largestSize = size;
+              largestImage = src;
+            }
+          }
+        } catch (e) {
+          continue;
+        }
+      }
+      
+      if (largestImage) {
+        imageUrl = largestImage;
+      }
+    } catch (e) {
+      // Ignore
+    }
+  }
+  
   return imageUrl;
 }
 
@@ -223,10 +284,33 @@ app.post('/api/scrape-post', async (req, res) => {
   });
   console.log(`\n[${timestamp}] 🔄 Rescraping cycle started for: ${postUrl}`);
 
-  const browser = await chromium.launch({ 
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
+  let browser;
+  try {
+    browser = await chromium.launch({ 
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+  } catch (error) {
+    if (error.message.includes('Executable doesn\'t exist') || error.message.includes('browserType.launch')) {
+      const errorTime = new Date().toLocaleString('en-US', { 
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      });
+      console.error(`[${errorTime}] ❌ Playwright browsers not installed!`);
+      console.error(`[${errorTime}] Run: npx playwright install chromium`);
+      return res.status(500).json({
+        success: false,
+        error: 'Playwright browsers are not installed. Please run: npx playwright install chromium',
+      });
+    }
+    throw error;
+  }
+  
   const page = await browser.newPage();
 
   // Set longer timeout for navigation
@@ -267,7 +351,15 @@ app.post('/api/scrape-post', async (req, res) => {
       second: '2-digit',
       hour12: true
     });
-    console.log(`[${endTime}] ✅ Scraping completed - Likes: ${likesCount}, Image: ${imageUrl ? 'Found' : 'Not found'}`);
+    
+    if (imageUrl) {
+      // Show truncated URL for readability
+      const shortUrl = imageUrl.length > 80 ? imageUrl.substring(0, 80) + '...' : imageUrl;
+      console.log(`[${endTime}] ✅ Scraping completed - Likes: ${likesCount}`);
+      console.log(`[${endTime}] 🖼️  Image URL: ${shortUrl}`);
+    } else {
+      console.log(`[${endTime}] ✅ Scraping completed - Likes: ${likesCount}, Image: ❌ Not found`);
+    }
 
     res.json({
       success: true,
