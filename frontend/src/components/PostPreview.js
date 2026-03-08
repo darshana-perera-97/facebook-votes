@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { scrapePost, getPosts, addPost, updatePost, deletePost } from '../utils/api';
 
 function PostPreview() {
@@ -9,10 +9,6 @@ function PostPreview() {
   const [error, setError] = useState('');
   const [updatingPosts, setUpdatingPosts] = useState(new Set());
   const [loadingPosts, setLoadingPosts] = useState(true);
-  const [lastRefreshTime, setLastRefreshTime] = useState(null);
-  const [nextRefreshIn, setNextRefreshIn] = useState(60);
-  const intervalRef = useRef(null);
-  const countdownRef = useRef(null);
 
   // Load posts from API on mount
   useEffect(() => {
@@ -31,7 +27,6 @@ function PostPreview() {
         const postsData = response.data || [];
         console.log('Setting posts:', postsData);
         setPosts(postsData);
-        setLastRefreshTime(new Date());
       } else if (response && !response.success) {
         setError(response.error || 'Failed to load posts');
       } else {
@@ -39,7 +34,6 @@ function PostPreview() {
         if (Array.isArray(response)) {
           console.log('Response is array, setting directly:', response);
           setPosts(response);
-          setLastRefreshTime(new Date());
         } else {
           setError('Invalid response format from server');
         }
@@ -89,50 +83,6 @@ function PostPreview() {
     }, 1000);
   };
 
-  // Countdown timer for next refresh
-  useEffect(() => {
-    if (posts.length === 0) {
-      setNextRefreshIn(60);
-      return;
-    }
-
-    countdownRef.current = setInterval(() => {
-      setNextRefreshIn((prev) => {
-        if (prev <= 1) {
-          return 60; // Reset to 60 seconds
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => {
-      if (countdownRef.current) {
-        clearInterval(countdownRef.current);
-      }
-    };
-  }, [posts.length, lastRefreshTime]);
-
-  // Auto-refresh every 1 minute
-  useEffect(() => {
-    if (posts.length === 0) return;
-
-    const refreshPosts = async () => {
-      console.log('Auto-refreshing posts...');
-      setNextRefreshIn(60); // Reset countdown
-      setLastRefreshTime(new Date());
-      await refreshAllPosts();
-    };
-
-    // Set up interval to refresh every 1 minute (60000ms)
-    intervalRef.current = setInterval(refreshPosts, 60000);
-
-    // Cleanup interval on unmount
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [posts.length]); // Only re-run when number of posts changes
 
   const handleAddPost = async (e) => {
     e.preventDefault();
@@ -284,17 +234,6 @@ function PostPreview() {
       <div className="preview-header">
         <div>
           <h1>Post Previews</h1>
-          {lastRefreshTime && (
-            <div className="refresh-status">
-              <span className="refresh-indicator">🔄 Auto-refresh active</span>
-              <span className="refresh-time">
-                Last updated: {lastRefreshTime.toLocaleTimeString()}
-              </span>
-              <span className="refresh-countdown">
-                Next refresh in: {nextRefreshIn}s
-              </span>
-            </div>
-          )}
         </div>
         <button
           onClick={() => setShowAddModal(true)}

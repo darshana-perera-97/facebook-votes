@@ -1,21 +1,28 @@
 import { API_BASE_URL } from '../config/api';
 
 export const scrapePost = async (postUrl) => {
-  const response = await fetch(`${API_BASE_URL}/api/scrape-post`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ postUrl }),
-  });
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/scrape-post`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ postUrl }),
+    });
 
-  const data = await response.json();
-  
-  if (!response.ok) {
-    throw new Error(data.error || 'Failed to scrape post');
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || 'Failed to scrape post');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    if (error.message.includes('fetch') || error.message.includes('Failed to fetch') || error.message.includes('ERR_CONNECTION_REFUSED')) {
+      throw new Error(`Cannot connect to server at ${API_BASE_URL}. Make sure the backend is running on port 4041.`);
+    }
+    throw error;
   }
-
-  return data;
 };
 
 export const getPosts = async () => {
@@ -49,21 +56,28 @@ export const getPosts = async () => {
 };
 
 export const addPost = async (postData) => {
-  const response = await fetch(`${API_BASE_URL}/api/posts`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(postData),
-  });
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/posts`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(postData),
+    });
 
-  const data = await response.json();
-  
-  if (!response.ok) {
-    throw new Error(data.error || 'Failed to add post');
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || 'Failed to add post');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    if (error.message.includes('fetch') || error.message.includes('Failed to fetch') || error.message.includes('ERR_CONNECTION_REFUSED')) {
+      throw new Error(`Cannot connect to server at ${API_BASE_URL}. Make sure the backend is running on port 4041.`);
+    }
+    throw error;
   }
-
-  return data;
 };
 
 export const updatePost = async (id, postData) => {
