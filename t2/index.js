@@ -376,7 +376,9 @@ async function processPhotoUrl(photoUrl) {
             const span = document.querySelector(sel);
             if (span) {
               const text = span.textContent.trim();
-              if (/^\d+$/.test(text)) {
+              // Accept text with numbers and letters (like "145K", "1.2K", "1M", etc.)
+              // Also accept pure numbers
+              if (text && (/^\d+[KMB]?$/i.test(text) || /^\d+\.?\d*[KMB]?$/i.test(text) || /^\d+$/.test(text))) {
                 return text;
               }
             }
@@ -398,8 +400,27 @@ async function processPhotoUrl(photoUrl) {
           const spans = Array.from(document.querySelectorAll('span[class*="x135"]'));
           for (const s of spans) {
             const text = s.textContent.trim();
-            if (/^\d+$/.test(text)) {
+            // Accept text with numbers and letters (like "145K", "1.2K", "1M", etc.)
+            if (text && (/^\d+[KMB]?$/i.test(text) || /^\d+\.?\d*[KMB]?$/i.test(text) || /^\d+$/.test(text))) {
               return text;
+            }
+          }
+          return null;
+        });
+      }
+      
+      // Additional fallback: try to find the nested structure
+      if (!number) {
+        number = await page.evaluate(() => {
+          // Look for the nested structure: span > span > span.x135b78x
+          const parentSpans = Array.from(document.querySelectorAll('span[aria-hidden="true"]'));
+          for (const parentSpan of parentSpans) {
+            const nestedSpan = parentSpan.querySelector('span span.x135b78x');
+            if (nestedSpan) {
+              const text = nestedSpan.textContent.trim();
+              if (text && (/^\d+[KMB]?$/i.test(text) || /^\d+\.?\d*[KMB]?$/i.test(text) || /^\d+$/.test(text))) {
+                return text;
+              }
             }
           }
           return null;
@@ -880,7 +901,9 @@ async function openFacebook() {
               const span = document.querySelector(sel);
               if (span) {
                 const text = span.textContent.trim();
-                if (/^\d+$/.test(text)) {
+                // Accept text with numbers and letters (like "145K", "1.2K", "1M", etc.)
+                // Also accept pure numbers
+                if (text && (/^\d+[KMB]?$/i.test(text) || /^\d+\.?\d*[KMB]?$/i.test(text) || /^\d+$/.test(text))) {
                   return text;
                 }
               }
@@ -902,8 +925,27 @@ async function openFacebook() {
             const spans = Array.from(document.querySelectorAll('span[class*="x135"]'));
             for (const s of spans) {
               const text = s.textContent.trim();
-              if (/^\d+$/.test(text)) {
+              // Accept text with numbers and letters (like "145K", "1.2K", "1M", etc.)
+              if (text && (/^\d+[KMB]?$/i.test(text) || /^\d+\.?\d*[KMB]?$/i.test(text) || /^\d+$/.test(text))) {
                 return text;
+              }
+            }
+            return null;
+          });
+        }
+        
+        // Additional fallback: try to find the nested structure
+        if (!number) {
+          number = await page.evaluate(() => {
+            // Look for the nested structure: span > span > span.x135b78x
+            const parentSpans = Array.from(document.querySelectorAll('span[aria-hidden="true"]'));
+            for (const parentSpan of parentSpans) {
+              const nestedSpan = parentSpan.querySelector('span span.x135b78x');
+              if (nestedSpan) {
+                const text = nestedSpan.textContent.trim();
+                if (text && (/^\d+[KMB]?$/i.test(text) || /^\d+\.?\d*[KMB]?$/i.test(text) || /^\d+$/.test(text))) {
+                  return text;
+                }
               }
             }
             return null;

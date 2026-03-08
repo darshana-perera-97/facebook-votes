@@ -451,7 +451,7 @@
                     ${noImageHtml}
                     <div class="link-info">
                         <div class="reactions-count">
-                            ❤️ <span>${link.reactionsCount.toLocaleString()}</span>
+                            ❤️ <span>${link.reactionsText || link.reactionsCount.toLocaleString() || '0'}</span>
                         </div>
                         <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="link-url">
                             ${link.url}

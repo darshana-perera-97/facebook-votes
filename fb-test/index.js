@@ -66,12 +66,32 @@ ensureDataDir().then(() => {
 
 // Health check endpoint (API endpoint)
 app.get('/api', (req, res) => {
+  const indexPath = path.join(__dirname, 'public', 'index.html');
+  const frontendExists = fs.existsSync(indexPath);
+  
   res.json({
     success: true,
     message: 'FB Test API is running',
     timestamp: new Date().toISOString(),
     version: '1.0.0',
-    t2ServiceUrl: T2_SERVICE_URL
+    port: PORT,
+    t2ServiceUrl: T2_SERVICE_URL,
+    frontend: {
+      hosted: frontendExists,
+      url: `http://localhost:${PORT}/`,
+      status: frontendExists ? 'available' : 'not found'
+    },
+    endpoints: {
+      health: 'GET /health',
+      apiInfo: 'GET /api',
+      frontendInfo: 'GET /api/frontend',
+      links: 'GET /api/links',
+      addLink: 'POST /api/links',
+      updateLink: 'PUT /api/links/:id',
+      deleteLink: 'DELETE /api/links/:id',
+      t2Status: 'GET /api/t2/status',
+      t2ProcessPhoto: 'POST /api/t2/process-photo'
+    }
   });
 });
 
@@ -128,6 +148,7 @@ app.post('/api/links', async (req, res) => {
 
     // Call t2 service to process the photo
     let imageUrl = '';
+    let reactionsText = '';
     let reactionsCount = 0;
     let viewableImageUrl = '';
 
@@ -141,9 +162,12 @@ app.post('/api/links', async (req, res) => {
 
       if (response.data.success && response.data.data) {
         imageUrl = response.data.data.imageUrl || '';
-        reactionsCount = parseInt(response.data.data.number) || 0;
+        // Store the whole text from t2 backend (e.g., "145K", "196", etc.)
+        reactionsText = response.data.data.number ? String(response.data.data.number) : '';
+        // Also keep numeric value for backward compatibility
+        reactionsCount = parseInt(reactionsText) || 0;
         viewableImageUrl = response.data.data.viewableImageUrl || '';
-        console.log(`✅ Photo processed: Image=${imageUrl ? 'Yes' : 'No'}, Reactions=${reactionsCount}`);
+        console.log(`✅ Photo processed: Image=${imageUrl ? 'Yes' : 'No'}, Reactions=${reactionsText || 'N/A'}`);
       } else {
         console.log('⚠️  T2 service returned success=false');
       }
@@ -159,7 +183,8 @@ app.post('/api/links', async (req, res) => {
       url: linkUrl,
       imageUrl: imageUrl,
       viewableImageUrl: viewableImageUrl,
-      reactionsCount: reactionsCount,
+      reactionsText: reactionsText, // Store whole text from t2 backend
+      reactionsCount: reactionsCount, // Keep numeric value for backward compatibility
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -203,10 +228,13 @@ app.put('/api/links/:id', async (req, res) => {
 
       if (response.data.success && response.data.data) {
         links[linkIndex].imageUrl = response.data.data.imageUrl || '';
-        links[linkIndex].reactionsCount = parseInt(response.data.data.number) || 0;
+        // Store the whole text from t2 backend (e.g., "145K", "196", etc.)
+        links[linkIndex].reactionsText = response.data.data.number ? String(response.data.data.number) : '';
+        // Also keep numeric value for backward compatibility
+        links[linkIndex].reactionsCount = parseInt(links[linkIndex].reactionsText) || 0;
         links[linkIndex].viewableImageUrl = response.data.data.viewableImageUrl || '';
         links[linkIndex].updatedAt = new Date().toISOString();
-        console.log(`✅ Link updated: Image=${links[linkIndex].imageUrl ? 'Yes' : 'No'}, Reactions=${links[linkIndex].reactionsCount}`);
+        console.log(`✅ Link updated: Image=${links[linkIndex].imageUrl ? 'Yes' : 'No'}, Reactions=${links[linkIndex].reactionsText || 'N/A'}`);
       }
     } catch (error) {
       console.error('❌ Error re-processing link:', error.message);
@@ -252,6 +280,22 @@ app.delete('/api/links/:id', async (req, res) => {
     console.error('Error deleting link:', error);
     res.status(500).json({ success: false, error: 'Failed to delete link' });
   }
+});
+
+// Frontend hosting endpoint
+app.get('/api/frontend', (req, res) => {
+  const indexPath = path.join(__dirname, 'public', 'index.html');
+  const frontendExists = fs.existsSync(indexPath);
+  
+  res.json({
+    success: true,
+    frontend: {
+      hosted: frontendExists,
+      path: indexPath,
+      url: `http://localhost:${PORT}/`,
+      status: frontendExists ? 'available' : 'not found'
+    }
+  });
 });
 
 // Proxy endpoints to t2 service (for direct access if needed)
