@@ -204,6 +204,36 @@ app.post('/api/links', async (req, res) => {
   }
 });
 
+// Helper function to re-process a single link
+async function reprocessLink(link) {
+  try {
+    console.log(`🔄 Re-processing link: ${link.url}`);
+
+    // Call t2 service to re-process the photo
+    const response = await axios.post(`${T2_SERVICE_URL}/process-photo`, {
+      url: link.url
+    }, {
+      timeout: 60000
+    });
+
+    if (response.data.success && response.data.data) {
+      link.imageUrl = response.data.data.imageUrl || '';
+      // Store the whole text from t2 backend (e.g., "145K", "196", etc.)
+      link.reactionsText = response.data.data.number ? String(response.data.data.number) : '';
+      // Also keep numeric value for backward compatibility
+      link.reactionsCount = parseInt(link.reactionsText) || 0;
+      link.viewableImageUrl = response.data.data.viewableImageUrl || '';
+      link.updatedAt = new Date().toISOString();
+      console.log(`✅ Link updated: Image=${link.imageUrl ? 'Yes' : 'No'}, Reactions=${link.reactionsText || 'N/A'}`);
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error(`❌ Error re-processing link ${link.id}:`, error.message);
+    return false;
+  }
+}
+
 // Update a link (re-process photo)
 app.put('/api/links/:id', async (req, res) => {
   try {
@@ -215,38 +245,18 @@ app.put('/api/links/:id', async (req, res) => {
       return res.status(404).json({ success: false, error: 'Link not found' });
     }
 
-    const link = links[linkIndex];
-    console.log(`🔄 Re-processing link: ${link.url}`);
+    const success = await reprocessLink(links[linkIndex]);
 
-    // Call t2 service to re-process the photo
-    try {
-      const response = await axios.post(`${T2_SERVICE_URL}/process-photo`, {
-        url: link.url
-      }, {
-        timeout: 60000
-      });
-
-      if (response.data.success && response.data.data) {
-        links[linkIndex].imageUrl = response.data.data.imageUrl || '';
-        // Store the whole text from t2 backend (e.g., "145K", "196", etc.)
-        links[linkIndex].reactionsText = response.data.data.number ? String(response.data.data.number) : '';
-        // Also keep numeric value for backward compatibility
-        links[linkIndex].reactionsCount = parseInt(links[linkIndex].reactionsText) || 0;
-        links[linkIndex].viewableImageUrl = response.data.data.viewableImageUrl || '';
-        links[linkIndex].updatedAt = new Date().toISOString();
-        console.log(`✅ Link updated: Image=${links[linkIndex].imageUrl ? 'Yes' : 'No'}, Reactions=${links[linkIndex].reactionsText || 'N/A'}`);
-      }
-    } catch (error) {
-      console.error('❌ Error re-processing link:', error.message);
+    if (!success) {
       return res.status(500).json({
         success: false,
-        error: `Failed to re-process link: ${error.message}`
+        error: 'Failed to re-process link'
       });
     }
 
-    const success = await writeLinks(links);
+    const writeSuccess = await writeLinks(links);
 
-    if (success) {
+    if (writeSuccess) {
       res.json({ success: true, data: links[linkIndex] });
     } else {
       res.status(500).json({ success: false, error: 'Failed to update link' });
@@ -359,6 +369,62 @@ app.get('*', (req, res) => {
   }
 });
 
+// Queue processing flag to prevent concurrent processing
+let isProcessingQueue = false;
+
+// Background job: Re-process all links in queue every 5 minutes
+async function processAllLinks() {
+  // Prevent concurrent processing
+  if (isProcessingQueue) {
+    console.log('⏰ Queue processing already in progress, skipping...');
+    return;
+  }
+
+  try {
+    isProcessingQueue = true;
+    const links = await readLinks();
+    
+    if (links.length === 0) {
+      console.log('⏰ No links to process in queue');
+      return;
+    }
+
+    const startTime = Date.now();
+    console.log(`\n⏰ [QUEUE] Starting automatic re-processing of ${links.length} link(s) in queue...`);
+    let successCount = 0;
+    let failCount = 0;
+
+    // Process links sequentially in queue (one by one)
+    for (let i = 0; i < links.length; i++) {
+      const link = links[i];
+      console.log(`📋 [QUEUE] Processing ${i + 1}/${links.length}: ${link.url.substring(0, 50)}...`);
+      
+      const success = await reprocessLink(link);
+      if (success) {
+        successCount++;
+      } else {
+        failCount++;
+      }
+      
+      // Small delay between requests to avoid overwhelming the t2 service
+      // Only delay if not the last item
+      if (i < links.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+
+    // Save all updated links
+    await writeLinks(links);
+
+    const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+    console.log(`✅ [QUEUE] Automatic re-processing completed in ${duration}s: ${successCount} succeeded, ${failCount} failed`);
+  } catch (error) {
+    console.error('❌ [QUEUE] Error in automatic re-processing:', error.message);
+  } finally {
+    isProcessingQueue = false;
+  }
+}
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`🚀 FB Test Server is running on http://localhost:${PORT}`);
@@ -366,5 +432,14 @@ app.listen(PORT, () => {
   console.log(`🌐 Frontend: http://localhost:${PORT}/`);
   console.log(`🔗 T2 Service: ${T2_SERVICE_URL}`);
   console.log(`💾 Storing links in: ${DATA_FILE}`);
+  console.log(`\n⏰ Automatic re-processing: Every 5 minutes`);
+  
+  // Start automatic re-processing
+  // Process immediately on startup (optional - you can remove this if you don't want it)
+  // processAllLinks();
+  
+  // Then process every 5 minutes (300000 milliseconds)
+  setInterval(processAllLinks, 5 * 60 * 1000);
+  console.log(`   Next automatic re-processing in 5 minutes...`);
 });
 

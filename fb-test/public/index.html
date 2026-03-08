@@ -12,81 +12,113 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background: #f5f7fa;
             min-height: 100vh;
             padding: 20px;
+            color: #2d3748;
+            line-height: 1.6;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
         header {
             background: white;
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
         }
 
         h1 {
-            color: #333;
-            margin-bottom: 10px;
+            color: #1a202c;
+            margin-bottom: 8px;
+            font-size: 32px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .subtitle {
-            color: #666;
-            font-size: 14px;
+            color: #718096;
+            font-size: 16px;
+            font-weight: 400;
         }
 
         .status-bar {
             background: white;
-            border-radius: 12px;
-            padding: 15px 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            padding: 20px 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 24px;
         }
 
         .status-item {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .status-item strong {
+            color: #4a5568;
+            font-weight: 600;
         }
 
         .status-dot {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             display: inline-block;
         }
 
         .status-dot.ready {
-            background: #28a745;
+            background: #48bb78;
+            box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.2);
             animation: pulse 2s infinite;
         }
 
         .status-dot.not-ready {
-            background: #ffc107;
+            background: #ed8936;
+            box-shadow: 0 0 0 3px rgba(237, 137, 54, 0.2);
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            0%, 100% { 
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 0.7;
+                transform: scale(1.1);
+            }
         }
 
         .add-link-section {
             background: white;
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .add-link-section h2 {
+            color: #1a202c;
+            margin-bottom: 24px;
+            font-size: 20px;
+            font-weight: 600;
         }
 
         .form-group {
@@ -96,190 +128,225 @@
         label {
             display: block;
             margin-bottom: 8px;
-            color: #555;
+            color: #4a5568;
             font-weight: 500;
+            font-size: 14px;
         }
 
         input[type="text"] {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.2s;
+            background: #f7fafc;
         }
 
         input[type="text"]:focus {
             outline: none;
             border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         button {
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 14px 28px;
+            background: #667eea;
             color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 12px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
         }
 
         button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            background: #5568d3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
         }
 
         button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
+            transform: none;
         }
 
         .links-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
         }
 
         .link-card {
             background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            padding: 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
             position: relative;
-            transition: transform 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
         }
 
         .link-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            border-color: #cbd5e0;
         }
 
         .link-card .delete-btn {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #dc3545;
+            top: 12px;
+            right: 12px;
+            background: rgba(220, 53, 69, 0.9);
             color: white;
             border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            border-radius: 8px;
+            width: 36px;
+            height: 36px;
             cursor: pointer;
-            font-size: 18px;
+            font-size: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.2s;
+            transition: all 0.2s;
+            z-index: 10;
+            backdrop-filter: blur(4px);
         }
 
         .link-card .delete-btn:hover {
-            background: #c82333;
+            background: #dc3545;
+            transform: scale(1.1);
         }
 
-        .link-card .refresh-btn {
-            position: absolute;
-            top: 10px;
-            right: 50px;
-            background: #17a2b8;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            cursor: pointer;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-        }
-
-        .link-card .refresh-btn:hover {
-            background: #138496;
-        }
 
         .link-image {
             width: 100%;
-            height: 200px;
+            height: 240px;
             object-fit: cover;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            background: #f0f0f0;
+            display: block;
+            background: #f7fafc;
         }
 
         .no-image {
             width: 100%;
-            height: 200px;
-            background: #f0f0f0;
-            border-radius: 8px;
+            height: 240px;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #999;
-            margin-bottom: 15px;
+            color: #a0aec0;
+            font-size: 14px;
+            font-weight: 500;
         }
 
         .link-info {
-            margin-top: 15px;
+            padding: 20px;
         }
 
         .reactions-count {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
-            font-size: 18px;
-            font-weight: bold;
-            color: #e91e63;
+            gap: 10px;
+            margin-bottom: 16px;
+            font-size: 24px;
+            font-weight: 700;
+            color: #e53e3e;
+        }
+
+        .reactions-count span {
+            font-size: 28px;
         }
 
         .link-url {
             color: #667eea;
             text-decoration: none;
-            font-size: 14px;
+            font-size: 13px;
             word-break: break-all;
             display: block;
-            margin-top: 10px;
+            margin-top: 12px;
+            padding: 8px 12px;
+            background: #f7fafc;
+            border-radius: 8px;
+            transition: all 0.2s;
         }
 
         .link-url:hover {
-            text-decoration: underline;
+            background: #edf2f7;
+            color: #5568d3;
+        }
+
+        .time-info {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 12px;
+            color: #718096;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .time-info .updated-time {
+            color: #667eea;
+            font-weight: 600;
         }
 
         .message {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
             display: none;
+            font-size: 14px;
+            font-weight: 500;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .message.success {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
+            background: #f0fff4;
+            border: 1px solid #9ae6b4;
+            color: #22543d;
         }
 
         .message.error {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
+            background: #fff5f5;
+            border: 1px solid #fc8181;
+            color: #742a2a;
         }
 
         .loading {
             text-align: center;
-            padding: 20px;
+            padding: 60px 20px;
             color: #667eea;
         }
 
         .spinner {
-            border: 3px solid #f3f3f3;
+            border: 3px solid #e2e8f0;
             border-top: 3px solid #667eea;
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
+            width: 40px;
+            height: 40px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
         }
 
         @keyframes spin {
@@ -289,47 +356,106 @@
 
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
+            padding: 80px 20px;
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
         }
 
         .empty-state h2 {
-            color: #666;
-            margin-bottom: 10px;
+            color: #4a5568;
+            margin-bottom: 8px;
+            font-size: 24px;
+            font-weight: 600;
         }
 
         .empty-state p {
-            color: #999;
-            margin-bottom: 20px;
+            color: #718096;
+            margin-bottom: 24px;
+            font-size: 16px;
+        }
+
+        .empty-button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .empty-button:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0;
+            }
+
+            header {
+                border-radius: 0;
+                margin-bottom: 16px;
+            }
+
+            .status-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .links-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>📸 Facebook Links Manager</h1>
-            <p class="subtitle">Store and manage Facebook photo links with images and reaction counts</p>
+            <h1>
+                <span>📸</span>
+                <span>Facebook Links Manager</span>
+            </h1>
+            <p class="subtitle">Track and manage your Facebook photo links with real-time reaction counts</p>
         </header>
 
         <div class="status-bar">
             <div class="status-item">
                 <span class="status-dot" id="t2StatusDot"></span>
-                <span id="t2StatusText">Checking t2 service status...</span>
+                <span id="t2StatusText">Checking service status...</span>
             </div>
             <div class="status-item">
                 <strong>Total Links:</strong> <span id="totalLinks">0</span>
+            </div>
+            <div class="status-item">
+                <strong>Auto-Update:</strong> <span id="autoUpdateStatus">Every 5 minutes</span>
             </div>
         </div>
 
         <div class="message" id="message"></div>
 
         <div class="add-link-section">
-            <h2 style="margin-bottom: 20px; color: #333;">Add New Facebook Link</h2>
+            <h2>Add New Facebook Link</h2>
             <form id="addLinkForm">
                 <div class="form-group">
-                    <label for="linkUrl">Facebook Photo URL:</label>
+                    <label for="linkUrl">Facebook Photo URL</label>
                     <input 
                         type="text" 
                         id="linkUrl" 
@@ -338,7 +464,7 @@
                         required
                     >
                 </div>
-                <button type="submit" id="submitBtn">Add Link</button>
+                <button type="submit" id="submitBtn">+ Add Link</button>
             </form>
         </div>
 
@@ -349,15 +475,16 @@
 
         <div id="linksContainer">
             <div class="empty-state">
+                <div class="empty-state-icon">📭</div>
                 <h2>No links yet</h2>
-                <p>Add your first Facebook link to see it here</p>
+                <p>Add your first Facebook link to start tracking reactions</p>
             </div>
         </div>
     </div>
 
     <script>
-        const API_BASE_URL = window.location.origin; // Use current server (fb-test backend)
-        const T2_SERVICE_URL = 'http://69.197.187.24:4561'; // t2 service URL (for reference only)
+        const API_BASE_URL = window.location.origin;
+        const T2_SERVICE_URL = 'http://69.197.187.24:4561';
 
         // DOM elements
         const addLinkForm = document.getElementById('addLinkForm');
@@ -388,14 +515,14 @@
                 
                 if (data.ready) {
                     t2StatusDot.className = 'status-dot ready';
-                    t2StatusText.textContent = '✅ T2 Service Ready';
+                    t2StatusText.textContent = 'Service Ready';
                 } else {
                     t2StatusDot.className = 'status-dot not-ready';
-                    t2StatusText.textContent = '⏳ T2 Service Not Ready';
+                    t2StatusText.textContent = 'Service Not Ready';
                 }
             } catch (error) {
                 t2StatusDot.className = 'status-dot not-ready';
-                t2StatusText.textContent = '❌ T2 Service Unavailable';
+                t2StatusText.textContent = 'Service Unavailable';
             }
         }
 
@@ -419,13 +546,30 @@
             }
         }
 
+        // Format date to Sri Lanka time (Asia/Colombo, UTC+5:30)
+        function formatLKTime(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleString('en-US', {
+                timeZone: 'Asia/Colombo',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            }) + ' (LK)';
+        }
+
         // Display links
         function displayLinks(links) {
             if (links.length === 0) {
                 linksContainer.innerHTML = `
                     <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
                         <h2>No links yet</h2>
-                        <p>Add your first Facebook link to see it here</p>
+                        <p>Add your first Facebook link to start tracking reactions</p>
                     </div>
                 `;
                 return;
@@ -442,22 +586,23 @@
                     ? `<img src="${link.viewableImageUrl || link.imageUrl}" alt="Facebook post" class="link-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`
                     : '';
                 
-                const noImageHtml = `<div class="no-image" style="display: ${imageHtml ? 'none' : 'flex'};">No Image</div>`;
+                const noImageHtml = `<div class="no-image" style="display: ${imageHtml ? 'none' : 'flex'};">No Image Available</div>`;
 
                 card.innerHTML = `
                     <button class="delete-btn" onclick="deleteLink('${link.id}')" title="Delete">×</button>
-                    <button class="refresh-btn" onclick="refreshLink('${link.id}')" title="Refresh">↻</button>
                     ${imageHtml}
                     ${noImageHtml}
                     <div class="link-info">
                         <div class="reactions-count">
-                            ❤️ <span>${link.reactionsText || link.reactionsCount.toLocaleString() || '0'}</span>
+                            <span>❤️</span>
+                            <span>${link.reactionsText || link.reactionsCount.toLocaleString() || '0'}</span>
                         </div>
                         <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="link-url">
                             ${link.url}
                         </a>
-                        <div style="font-size: 12px; color: #999; margin-top: 10px;">
-                            Added: ${new Date(link.createdAt).toLocaleString()}
+                        <div class="time-info">
+                            <div>Added: ${formatLKTime(link.createdAt)}</div>
+                            ${link.updatedAt ? `<div class="updated-time">🔄 Last Updated: ${formatLKTime(link.updatedAt)}</div>` : ''}
                         </div>
                     </div>
                 `;
@@ -501,7 +646,7 @@
                 showMessage(`Error adding link: ${error.message}`, 'error');
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Add Link';
+                submitBtn.textContent = '+ Add Link';
             }
         });
 
@@ -529,34 +674,30 @@
             }
         };
 
-        // Refresh link (re-process)
-        window.refreshLink = async function(id) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/links/${id}`, {
-                    method: 'PUT'
-                });
+        // Auto-refresh links every 5 minutes (to show updated data from background job)
+        function startAutoRefresh() {
+            setInterval(() => {
+                console.log('🔄 Auto-refreshing links...');
+                loadLinks();
+            }, 5 * 60 * 1000);
+        }
 
-                const data = await response.json();
-
-                if (data.success) {
-                    showMessage('Link refreshed successfully!', 'success');
-                    loadLinks();
-                } else {
-                    showMessage(data.error || 'Failed to refresh link', 'error');
-                }
-            } catch (error) {
-                showMessage(`Error refreshing link: ${error.message}`, 'error');
-            }
-        };
+        // Auto-refresh entire page every 5 minutes
+        function startPageRefresh() {
+            setInterval(() => {
+                console.log('🔄 Refreshing page...');
+                location.reload();
+            }, 5 * 60 * 1000);
+        }
 
         // Initialize
         window.addEventListener('load', () => {
             checkT2Status();
             loadLinks();
-            // Check t2 status every 10 seconds
             setInterval(checkT2Status, 10000);
+            startAutoRefresh();
+            startPageRefresh();
         });
     </script>
 </body>
 </html>
-
