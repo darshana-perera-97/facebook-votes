@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook Links Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .status-bar {
+            background: white;
+            border-radius: 12px;
+            padding: 15px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-dot.ready {
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.not-ready {
+            background: #ffc107;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .add-link-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .link-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            transition: transform 0.2s;
+        }
+
+        .link-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .link-card .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .link-card .delete-btn:hover {
+            background: #c82333;
+        }
+
+        .link-card .refresh-btn {
+            position: absolute;
+            top: 10px;
+            right: 50px;
+            background: #17a2b8;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .link-card .refresh-btn:hover {
+            background: #138496;
+        }
+
+        .link-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background: #f0f0f0;
+        }
+
+        .no-image {
+            width: 100%;
+            height: 200px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            margin-bottom: 15px;
+        }
+
+        .link-info {
+            margin-top: 15px;
+        }
+
+        .reactions-count {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #e91e63;
+        }
+
+        .link-url {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+            word-break: break-all;
+            display: block;
+            margin-top: 10px;
+        }
+
+        .link-url:hover {
+            text-decoration: underline;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .empty-state h2 {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #999;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📸 Facebook Links Manager</h1>
+            <p class="subtitle">Store and manage Facebook photo links with images and reaction counts</p>
+        </header>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="status-dot" id="t2StatusDot"></span>
+                <span id="t2StatusText">Checking t2 service status...</span>
+            </div>
+            <div class="status-item">
+                <strong>Total Links:</strong> <span id="totalLinks">0</span>
+            </div>
+        </div>
+
+        <div class="message" id="message"></div>
+
+        <div class="add-link-section">
+            <h2 style="margin-bottom: 20px; color: #333;">Add New Facebook Link</h2>
+            <form id="addLinkForm">
+                <div class="form-group">
+                    <label for="linkUrl">Facebook Photo URL:</label>
+                    <input 
+                        type="text" 
+                        id="linkUrl" 
+                        name="linkUrl" 
+                        placeholder="https://www.facebook.com/photo?fbid=..."
+                        required
+                    >
+                </div>
+                <button type="submit" id="submitBtn">Add Link</button>
+            </form>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Loading links...</p>
+        </div>
+
+        <div id="linksContainer">
+            <div class="empty-state">
+                <h2>No links yet</h2>
+                <p>Add your first Facebook link to see it here</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.origin; // Use current server (fb-test backend)
+        const T2_SERVICE_URL = 'http://69.197.187.24:4561'; // t2 service URL (for reference only)
+
+        // DOM elements
+        const addLinkForm = document.getElementById('addLinkForm');
+        const linkUrlInput = document.getElementById('linkUrl');
+        const submitBtn = document.getElementById('submitBtn');
+        const linksContainer = document.getElementById('linksContainer');
+        const messageDiv = document.getElementById('message');
+        const loadingDiv = document.getElementById('loading');
+        const totalLinksSpan = document.getElementById('totalLinks');
+        const t2StatusDot = document.getElementById('t2StatusDot');
+        const t2StatusText = document.getElementById('t2StatusText');
+
+        // Show message
+        function showMessage(text, type) {
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Check t2 service status
+        async function checkT2Status() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/t2/status`);
+                const data = await response.json();
+                
+                if (data.ready) {
+                    t2StatusDot.className = 'status-dot ready';
+                    t2StatusText.textContent = '✅ T2 Service Ready';
+                } else {
+                    t2StatusDot.className = 'status-dot not-ready';
+                    t2StatusText.textContent = '⏳ T2 Service Not Ready';
+                }
+            } catch (error) {
+                t2StatusDot.className = 'status-dot not-ready';
+                t2StatusText.textContent = '❌ T2 Service Unavailable';
+            }
+        }
+
+        // Load all links
+        async function loadLinks() {
+            loadingDiv.style.display = 'block';
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/links`);
+                const data = await response.json();
+
+                if (data.success) {
+                    displayLinks(data.data);
+                    totalLinksSpan.textContent = data.count;
+                } else {
+                    showMessage('Failed to load links', 'error');
+                }
+            } catch (error) {
+                showMessage(`Error loading links: ${error.message}`, 'error');
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+
+        // Display links
+        function displayLinks(links) {
+            if (links.length === 0) {
+                linksContainer.innerHTML = `
+                    <div class="empty-state">
+                        <h2>No links yet</h2>
+                        <p>Add your first Facebook link to see it here</p>
+                    </div>
+                `;
+                return;
+            }
+
+            linksContainer.innerHTML = '<div class="links-grid"></div>';
+            const grid = linksContainer.querySelector('.links-grid');
+
+            links.forEach(link => {
+                const card = document.createElement('div');
+                card.className = 'link-card';
+                
+                const imageHtml = link.viewableImageUrl || link.imageUrl
+                    ? `<img src="${link.viewableImageUrl || link.imageUrl}" alt="Facebook post" class="link-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`
+                    : '';
+                
+                const noImageHtml = `<div class="no-image" style="display: ${imageHtml ? 'none' : 'flex'};">No Image</div>`;
+
+                card.innerHTML = `
+                    <button class="delete-btn" onclick="deleteLink('${link.id}')" title="Delete">×</button>
+                    <button class="refresh-btn" onclick="refreshLink('${link.id}')" title="Refresh">↻</button>
+                    ${imageHtml}
+                    ${noImageHtml}
+                    <div class="link-info">
+                        <div class="reactions-count">
+                            ❤️ <span>${link.reactionsCount.toLocaleString()}</span>
+                        </div>
+                        <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="link-url">
+                            ${link.url}
+                        </a>
+                        <div style="font-size: 12px; color: #999; margin-top: 10px;">
+                            Added: ${new Date(link.createdAt).toLocaleString()}
+                        </div>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        // Add new link
+        addLinkForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const url = linkUrlInput.value.trim();
+            if (!url) {
+                showMessage('Please enter a Facebook URL', 'error');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/links`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('Link added successfully!', 'success');
+                    linkUrlInput.value = '';
+                    loadLinks();
+                } else {
+                    showMessage(data.error || 'Failed to add link', 'error');
+                }
+            } catch (error) {
+                showMessage(`Error adding link: ${error.message}`, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Add Link';
+            }
+        });
+
+        // Delete link
+        window.deleteLink = async function(id) {
+            if (!confirm('Are you sure you want to delete this link?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/links/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('Link deleted successfully', 'success');
+                    loadLinks();
+                } else {
+                    showMessage(data.error || 'Failed to delete link', 'error');
+                }
+            } catch (error) {
+                showMessage(`Error deleting link: ${error.message}`, 'error');
+            }
+        };
+
+        // Refresh link (re-process)
+        window.refreshLink = async function(id) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/links/${id}`, {
+                    method: 'PUT'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('Link refreshed successfully!', 'success');
+                    loadLinks();
+                } else {
+                    showMessage(data.error || 'Failed to refresh link', 'error');
+                }
+            } catch (error) {
+                showMessage(`Error refreshing link: ${error.message}`, 'error');
+            }
+        };
+
+        // Initialize
+        window.addEventListener('load', () => {
+            checkT2Status();
+            loadLinks();
+            // Check t2 status every 10 seconds
+            setInterval(checkT2Status, 10000);
+        });
+    </script>
+</body>
+</html>
+
